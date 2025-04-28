@@ -98,8 +98,6 @@ type OAContentValue struct {
 	Formula OAContentFormula `json:"formula"`
 	// DateRange 时长组件（control参数为DateRange，且value参数为date_range）
 	DateRange OAContentDateRange `json:"date_range"`
-	// BankAccount 收款账户控件（control参数为BankAccount）
-	BankAccount OAContentBankAccount `json:"bank_account"`
 }
 
 // OAContentDate 日期/日期+时间内容
@@ -260,7 +258,7 @@ type OAContentDateRangeTimezoneInfo struct {
 	ZoneDesc string `json:"zone_desc"`
 }
 
-// OAContentBankAccount 时长组件
+// OAContentBankAccount 银行组件
 type OAContentBankAccount struct {
 	// AccountType 账户类型 ：1：对公账户,2：个人账户
 	AccountType uint8 `json:"account_type"`

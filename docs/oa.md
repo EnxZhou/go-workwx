@@ -71,7 +71,8 @@ Name|JSON|Type|Doc
 `RelatedApproval`|`related_approval`|`[]OAContentRelatedApproval`| 关联审批单控件（control参数为RelatedApproval，且value参数为related_approval）
 `Formula`|`formula`|`OAContentFormula`| 公式控件（control参数为Formula，且value参数为formula）
 `DateRange`|`date_range`|`OAContentDateRange`| 时长组件（control参数为DateRange，且value参数为date_range）
-`BankAccount`|`bank_account`|`OAContentBankAccount`| 收款账户控件（control参数为BankAccount）
+
+[//]: # (`BankAccount`|`bank_account`|`OAContentBankAccount`| 收款账户控件（control参数为BankAccount）)
 
 ### `OAContentDate` 日期/日期+时间内容
 
@@ -206,7 +207,7 @@ Name|JSON|Type|Doc
 `ZoneOffset`|`zone_offset`|`string`|时区偏移量
 `ZoneDesc`|`zone_desc`|`string`|时区描述
 
-### `OAContentBankAccount` 时长组件
+### `OAContentBankAccount` 银行组件
 
 Name|JSON|Type|Doc
 :---|:---|:---|:--
