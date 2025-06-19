@@ -287,27 +287,39 @@ func (c *Converter) handleSelector(field reflect.Value, params map[string]string
 		selectorType = "multi"
 	}
 
-	var selectedOptions []OAContentSelectorOption
+	// 检查是否为空值
+	if (selectorType == "single" && field.String() == "") ||
+		(selectorType == "multi" && field.Len() == 0) {
+		return OAContentValue{} // 返回空值，不处理该选项
+	}
 
-	// 获取预注册的选项
-	//availableOptions := c.selectorOptions[controlID]
+	var selectedOptions []OAContentSelectorOption
 
 	if selectorType == "multi" {
 		// 多选处理
 		for i := 0; i < field.Len(); i++ {
 			key := field.Index(i).String()
-			selectedOptions = append(selectedOptions, OAContentSelectorOption{
-				Key:   key,
-				Value: nil, // 默认用value作为显示文本
-			})
+			if key != "" { // 忽略空字符串
+				selectedOptions = append(selectedOptions, OAContentSelectorOption{
+					Key:   key,
+					Value: nil,
+				})
+			}
 		}
 	} else {
 		// 单选处理
 		key := field.String()
-		selectedOptions = append(selectedOptions, OAContentSelectorOption{
-			Key:   key,
-			Value: nil, // 默认用value作为显示文本
-		})
+		if key != "" { // 忽略空字符串
+			selectedOptions = append(selectedOptions, OAContentSelectorOption{
+				Key:   key,
+				Value: nil,
+			})
+		}
+	}
+
+	// 如果最终没有有效选项，返回空值
+	if len(selectedOptions) == 0 {
+		return OAContentValue{}
 	}
 
 	return OAContentValue{
