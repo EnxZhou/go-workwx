@@ -3,7 +3,6 @@ package workwx
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/bitly/go-simplejson"
 	c "github.com/smartystreets/goconvey/convey"
 	"strconv"
@@ -12,60 +11,94 @@ import (
 )
 
 // 业务审批结构体
+//type BusinessApply struct {
+//	Applicant  string `oa:"creator"`  // 特殊字段：申请人
+//	TemplateID string `oa:"template"` // 特殊字段：模板ID
+//
+//	ApplyDate    time.Time `oa:"control=Date;id=Date-123;type=day"`
+//	Department   string    `oa:"control=Selector;id=Selector-456;option=dept_option1"`
+//	Reason       string    `oa:"control=Text;id=Text-789"`
+//	Amount       float64   `oa:"control=Money;id=Money-101"`
+//	AttachmentID string    `oa:"control=File;id=File-112"`
+//
+//	// 明细控件
+//	Items []Item `oa:"control=Table;id=Table-113"`
+//}
+//
+//// 明细项结构体
+//type Item struct {
+//	Product  string  `oa:"control=Text;id=Text-114"`
+//	Quantity int     `oa:"control=Number;id=Number-115"`
+//	Price    float64 `oa:"control=Money;id=Money-116"`
+//}
+
 type BusinessApply struct {
 	Applicant  string `oa:"creator"`  // 特殊字段：申请人
 	TemplateID string `oa:"template"` // 特殊字段：模板ID
 
-	ApplyDate    time.Time `oa:"control=Date;id=Date-123;type=day"`
-	Department   string    `oa:"control=Selector;id=Selector-456;option=dept_option1"`
-	Reason       string    `oa:"control=Text;id=Text-789"`
-	Amount       float64   `oa:"control=Money;id=Money-101"`
-	AttachmentID string    `oa:"control=File;id=File-112"`
-
+	//履约主体
+	PerformanceSubject string `oa:"control=Selector;id=Selector-1745736605666;option=option-1745736605666"`
+	CompanyName        string `oa:"control=Text;id=Text-1745736790921"`
+	//ApplyDate          time.Time `oa:"control=Date;id=Date-123;type=day"`
+	//Department string  `oa:"control=Selector;id=Selector-456;option=dept_option1"`
+	Reason                 string  `oa:"control=Text;id=Text-1745736339267"`
+	Amount                 float64 `oa:"control=Money;id=Money-1745736827101"`
+	AttachmentID           string  `oa:"control=File;id=File-1745824439696"`
+	IsRegulatoryApproval   string  `oa:"control=Selector;id=Selector-1745827549537;option=option-1745827549538"` // 是否监管部门审批
+	OtherDeductions        float64 `oa:"control=Money;id=Money-1745823950698"`                                   // 其他扣款
+	ActualPaymentAmount    float64 `oa:"control=Money;id=Money-1745824081652"`                                   // 实际付款金额
+	ActualPaymentAmountStr string  `oa:"control=Textarea;id=Textarea-1750233243207"`                             // 实际付款金额描述
 	// 明细控件
-	Items []Item `oa:"control=Table;id=Table-113"`
+	Items []Item `oa:"control=Table;id=Table-1745823552331"`
 }
 
 // 明细项结构体
 type Item struct {
-	Product  string  `oa:"control=Text;id=Text-114"`
-	Quantity int     `oa:"control=Number;id=Number-115"`
-	Price    float64 `oa:"control=Money;id=Money-116"`
+	ProjectCode string  `oa:"control=Text;id=Text-1745823631415"`
+	ProjectName string  `oa:"control=Text;id=Text-1745823655223"`
+	Price       float64 `oa:"control=Money;id=Money-1745824059595"`
 }
 
 func TestBusinessApply(t *testing.T) {
+
 	// 准备业务数据
 	apply := BusinessApply{
-		Applicant:    "",
-		TemplateID:   "",
-		ApplyDate:    time.Now(),
-		Department:   "dept_option1",
-		Reason:       "采购申请",
-		Amount:       1999.99,
-		AttachmentID: "media_id_123",
+		PerformanceSubject: "option-1745736605666",
+		CompanyName:        "某个乙方有限公司",
+		Applicant:          "ZhouEnXian",
+		TemplateID:         "",
+		Reason:             "采购申请",
+		Amount:             1999.99,
+		//AttachmentID:       mRes.MediaID,
+		//AttachmentID: "",
+		IsRegulatoryApproval:   "option-1745827549538",
+		OtherDeductions:        12,
+		ActualPaymentAmount:    12321.32,
+		ActualPaymentAmountStr: "(12.32)",
 		Items: []Item{
 			{
-				Product:  "笔记本电脑",
-				Quantity: 2,
-				Price:    8999,
+				ProjectCode: "20020001",
+				ProjectName: "项目1",
+				Price:       8999,
 			},
 			{
-				Product:  "显示器",
-				Quantity: 3,
-				Price:    1999,
+				ProjectCode: "20020002",
+				ProjectName: "项目2",
+				Price:       1999,
 			},
 		},
 	}
 
 	// 创建转换器
 	converter := NewConverter("", "") // 参数会被业务数据覆盖
-	converter.WithApprovers([]OAApprover{
-		{
-			Attr:   1, // 或签
-			UserID: []string{"ZhangSan", "LiSi"},
-		},
-	})
-	converter.WithNotifiers([]string{"WangWu"}, 1) // 抄送人及抄送方式
+	//converter.WithApprovers([]OAApprover{
+	//	{
+	//		Attr:   1, // 或签
+	//		UserID: []string{"ZhangSan", "LiSi"},
+	//	},
+	//})
+	converter.UseTemplateApprover(true)
+	//converter.WithNotifiers([]string{"WangWu"}, 1) // 抄送人及抄送方式
 
 	// 转换业务数据
 	oaEvent, err := converter.Parse(&apply)
@@ -76,6 +109,16 @@ func TestBusinessApply(t *testing.T) {
 
 	// 输出结果检查
 	resJSON, _ := json.MarshalIndent(oaEvent, "", "    ")
+	//fmt.Println(string(resJSON))
+
+	res, err := app.ApplyOAEvent(*oaEvent)
+	if err != nil {
+		fmt.Printf("提交审批失败: %v\n", err)
+		return
+	}
+
+	resJSON, _ = json.MarshalIndent(res, "", "    ")
+	// 输出结果
 	fmt.Println(string(resJSON))
 }
 

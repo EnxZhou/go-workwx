@@ -28,6 +28,7 @@ type Converter struct {
 	notifiers           []string
 	notifyType          *uint8
 	summaryList         []OASummaryList
+	selectorOptions     map[string][]OAContentSelectorOption // 按控件ID存储选项
 	handlers            map[OAControl]func(reflect.Value, map[string]string) OAContentValue
 }
 
@@ -57,6 +58,14 @@ func NewConverter(templateID, creatorID string) *Converter {
 // RegisterHandler 注册自定义控件处理器
 func (c *Converter) RegisterHandler(control OAControl, handler func(reflect.Value, map[string]string) OAContentValue) {
 	c.handlers[control] = handler
+}
+
+// RegisterSelectorOptions 注册选择框选项
+func (c *Converter) RegisterSelectorOptions(controlID string, options []OAContentSelectorOption) {
+	if c.selectorOptions == nil {
+		c.selectorOptions = make(map[string][]OAContentSelectorOption)
+	}
+	c.selectorOptions[controlID] = options
 }
 
 // UseTemplateApprover 设置使用模板审批流程
@@ -193,7 +202,6 @@ func splitTag(tag, sep string) []string {
 }
 
 // 以下是各控件的处理函数
-
 func (c *Converter) handleText(field reflect.Value, params map[string]string) OAContentValue {
 	return OAContentValue{
 		Text: field.String(),
@@ -268,43 +276,56 @@ func (c *Converter) handleDate(field reflect.Value, params map[string]string) OA
 }
 
 func (c *Converter) handleSelector(field reflect.Value, params map[string]string) OAContentValue {
-	selectorType := "single" // 默认单选
-	if t, ok := params[tagSelectorType]; ok {
-		selectorType = t
+	controlID := params[tagID]
+	if controlID == "" {
+		return OAContentValue{}
 	}
 
-	// 处理多选情况
-	if multi, ok := params[tagMultiSelector]; ok && multi == "true" {
+	// 自动判断单选/多选
+	selectorType := "single"
+	if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
 		selectorType = "multi"
 	}
 
-	var options []OAContentSelectorOption
+	var selectedOptions []OAContentSelectorOption
+
+	// 获取预注册的选项
+	//availableOptions := c.selectorOptions[controlID]
+
 	if selectorType == "multi" {
-		// 处理多选情况（slice类型）
-		if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
-			for i := 0; i < field.Len(); i++ {
-				options = append(options, OAContentSelectorOption{
-					Key: field.Index(i).String(),
-				})
-			}
+		// 多选处理
+		for i := 0; i < field.Len(); i++ {
+			key := field.Index(i).String()
+			selectedOptions = append(selectedOptions, OAContentSelectorOption{
+				Key:   key,
+				Value: nil, // 默认用value作为显示文本
+			})
 		}
 	} else {
-		// 处理单选情况
-		optionKey := field.String()
-		if opt, ok := params[tagOption]; ok {
-			optionKey = opt
-		}
-		options = append(options, OAContentSelectorOption{
-			Key: optionKey,
+		// 单选处理
+		key := field.String()
+		selectedOptions = append(selectedOptions, OAContentSelectorOption{
+			Key:   key,
+			Value: nil, // 默认用value作为显示文本
 		})
 	}
 
 	return OAContentValue{
 		Selector: OAContentSelector{
 			Type:    selectorType,
-			Options: options,
+			Options: selectedOptions,
 		},
 	}
+}
+
+// findOption 从可用选项中查找指定key的选项
+func findOption(options []OAContentSelectorOption, key string) *OAContentSelectorOption {
+	for _, opt := range options {
+		if opt.Key == key {
+			return &opt
+		}
+	}
+	return nil
 }
 
 func (c *Converter) handleContact(field reflect.Value, params map[string]string) OAContentValue {
@@ -355,6 +376,10 @@ func (c *Converter) handleContact(field reflect.Value, params map[string]string)
 }
 
 func (c *Converter) handleFile(field reflect.Value, params map[string]string) OAContentValue {
+	// 检查字段是否为零值或空
+	if field.IsZero() {
+		return OAContentValue{}
+	}
 	var files []OAContentFile
 	if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
 		for i := 0; i < field.Len(); i++ {
@@ -366,6 +391,10 @@ func (c *Converter) handleFile(field reflect.Value, params map[string]string) OA
 		files = append(files, OAContentFile{
 			FileID: field.String(),
 		})
+	}
+	// 如果没有有效的文件ID，返回空值
+	if len(files) == 0 {
+		return OAContentValue{}
 	}
 	return OAContentValue{
 		Files: files,
