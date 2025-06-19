@@ -109,17 +109,17 @@ func TestBusinessApply(t *testing.T) {
 
 	// 输出结果检查
 	resJSON, _ := json.MarshalIndent(oaEvent, "", "    ")
-	//fmt.Println(string(resJSON))
-
-	res, err := app.ApplyOAEvent(*oaEvent)
-	if err != nil {
-		fmt.Printf("提交审批失败: %v\n", err)
-		return
-	}
-
-	resJSON, _ = json.MarshalIndent(res, "", "    ")
-	// 输出结果
 	fmt.Println(string(resJSON))
+
+	//res, err := app.ApplyOAEvent(*oaEvent)
+	//if err != nil {
+	//	fmt.Printf("提交审批失败: %v\n", err)
+	//	return
+	//}
+	//
+	//resJSON, _ = json.MarshalIndent(res, "", "    ")
+	//// 输出结果
+	//fmt.Println(string(resJSON))
 }
 
 func TestConverter(t *testing.T) {

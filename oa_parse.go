@@ -7,16 +7,16 @@ import (
 )
 
 const (
-	tagName          = "oa"
-	tagCreator       = "creator"
-	tagTemplate      = "template"
-	tagControl       = "control"
-	tagID            = "id"
-	tagType          = "type"
-	tagOption        = "option"
-	tagDateFormat    = "format"
-	tagSelectorType  = "selector_type"
-	tagMultiSelector = "multi"
+	tagName     = "oa"
+	tagCreator  = "creator"
+	tagTemplate = "template"
+	tagControl  = "control"
+	tagID       = "id"
+	tagType     = "type"
+	//tagOption        = "option"
+	//tagDateFormat    = "format"
+	//tagSelectorType  = "selector_type"
+	//tagMultiSelector = "multi"
 )
 
 // Converter 业务数据到OAApplyEvent的转换器
