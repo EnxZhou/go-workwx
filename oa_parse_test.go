@@ -10,28 +10,6 @@ import (
 	"time"
 )
 
-// 业务审批结构体
-//type BusinessApply struct {
-//	Applicant  string `oa:"creator"`  // 特殊字段：申请人
-//	TemplateID string `oa:"template"` // 特殊字段：模板ID
-//
-//	ApplyDate    time.Time `oa:"control=Date;id=Date-123;type=day"`
-//	Department   string    `oa:"control=Selector;id=Selector-456;option=dept_option1"`
-//	Reason       string    `oa:"control=Text;id=Text-789"`
-//	Amount       float64   `oa:"control=Money;id=Money-101"`
-//	AttachmentID string    `oa:"control=File;id=File-112"`
-//
-//	// 明细控件
-//	Items []Item `oa:"control=Table;id=Table-113"`
-//}
-//
-//// 明细项结构体
-//type Item struct {
-//	Product  string  `oa:"control=Text;id=Text-114"`
-//	Quantity int     `oa:"control=Number;id=Number-115"`
-//	Price    float64 `oa:"control=Money;id=Money-116"`
-//}
-
 type BusinessApply struct {
 	Applicant  string `oa:"creator"`  // 特殊字段：申请人
 	TemplateID string `oa:"template"` // 特殊字段：模板ID
@@ -45,6 +23,7 @@ type BusinessApply struct {
 	Amount                 float64 `oa:"control=Money;id=Money-1745736827101"`
 	AttachmentID           string  `oa:"control=File;id=File-1745824439696"`
 	IsRegulatoryApproval   string  `oa:"control=Selector;id=Selector-1745827549537;option=option-1745827549538"` // 是否监管部门审批
+	SettlementBasisType    string  `oa:"control=Selector;id=Selector-1745824160158"`                             // 结算依据提交情况
 	OtherDeductions        float64 `oa:"control=Money;id=Money-1745823950698"`                                   // 其他扣款
 	ActualPaymentAmount    float64 `oa:"control=Money;id=Money-1745824081652"`                                   // 实际付款金额
 	ActualPaymentAmountStr string  `oa:"control=Textarea;id=Textarea-1750233243207"`                             // 实际付款金额描述
@@ -66,12 +45,13 @@ func TestBusinessApply(t *testing.T) {
 		PerformanceSubject: "option-1745736605666",
 		CompanyName:        "某个乙方有限公司",
 		Applicant:          "ZhouEnXian",
-		TemplateID:         "",
+		TemplateID:         "3WLuFTUtLstd52F3Fai9ZbeEZphsdGVWTd7FKAsm",
 		Reason:             "采购申请",
 		Amount:             1999.99,
 		//AttachmentID:       mRes.MediaID,
 		//AttachmentID: "",
 		IsRegulatoryApproval:   "option-1745827549538",
+		SettlementBasisType:    "",
 		OtherDeductions:        12,
 		ActualPaymentAmount:    12321.32,
 		ActualPaymentAmountStr: "(12.32)",
@@ -91,14 +71,7 @@ func TestBusinessApply(t *testing.T) {
 
 	// 创建转换器
 	converter := NewConverter("", "") // 参数会被业务数据覆盖
-	//converter.WithApprovers([]OAApprover{
-	//	{
-	//		Attr:   1, // 或签
-	//		UserID: []string{"ZhangSan", "LiSi"},
-	//	},
-	//})
 	converter.UseTemplateApprover(true)
-	//converter.WithNotifiers([]string{"WangWu"}, 1) // 抄送人及抄送方式
 
 	// 转换业务数据
 	oaEvent, err := converter.Parse(&apply)
@@ -116,7 +89,7 @@ func TestBusinessApply(t *testing.T) {
 	//	fmt.Printf("提交审批失败: %v\n", err)
 	//	return
 	//}
-	//
+
 	//resJSON, _ = json.MarshalIndent(res, "", "    ")
 	//// 输出结果
 	//fmt.Println(string(resJSON))

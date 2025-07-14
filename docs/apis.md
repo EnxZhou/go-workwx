@@ -276,3 +276,14 @@ Name|Request Type|Response Type|Access Token|URL|Doc
 `execKfSyncMsg`|`reqKfSyncMsg`|`respKfSyncMsg`|+|`POST /cgi-bin/kf/sync_msg`|[读取消息](https://developer.work.weixin.qq.com/document/path/94670)
 `execKfSend`|`reqMessage`|`respMessageSend`|+|`POST /cgi-bin/kf/send_msg`|[发送消息](https://developer.work.weixin.qq.com/document/path/94677)
 `execKfOnEventSend`|`reqMessage`|`respMessageSend`|+|`POST /cgi-bin/kf/send_msg_on_event`|[发送欢迎语等事件响应消息](https://developer.work.weixin.qq.com/document/path/95122)
+
+
+# 文档 - 文档管理
+
+## API calls
+| Name                          | Request Type                   | Response Type                | Access Token | URL                                            | Doc                                                              |
+|:------------------------------|--------------------------------|------------------------------|--------------|:-----------------------------------------------|:-----------------------------------------------------------------|
+| `execWedocCreateDoc`          | `reqWedocCreateDoc`                 | `respWedocCreateDoc`         | +            | `POST /cgi-bin/wedoc/create_doc`               | [新建文档](https://developer.work.weixin.qq.com/document/path/97460) |
+| `execWedocBatchUpdate`        | `reqWedocBatchUpdate` | `respWedocBatchUpdate`       | +            | `POST /cgi-bin/wedoc/spreadsheet/batch_update` | [新建文档](https://developer.work.weixin.qq.com/document/path/97628) |
+| `execWedocGetSheetRangeData`  | `reqWedocGetSheetRangeData` | `respWedocGetSheetRangeData` | +            | `POST /cgi-bin/wedoc/spreadsheet/get_sheet_range_data` | [新建文档](https://developer.work.weixin.qq.com/document/path/97661) |
+| `execWedocGetSheetProperties` | `reqWedocGetSheetProperties` | `respWedocGetSheetProperties` | +            | `POST /cgi-bin/wedoc/spreadsheet/get_sheet_properties` | [新建文档](https://developer.work.weixin.qq.com/document/path/97711) |

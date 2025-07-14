@@ -892,3 +892,47 @@ func (c *WorkwxApp) execKfOnEventSend(req reqMessage) (respMessageSend, error) {
 
 	return resp, nil
 }
+
+// execWedocCreateDoc 新建文档
+func (c *WorkwxApp) execWedocCreateDoc(req reqWedocCreateDoc) (respWedocCreateDoc, error) {
+	var resp respWedocCreateDoc
+	err := executeQyapiJSONPost(c, "/cgi-bin/wedoc/create_doc", req, &resp, true)
+	if err != nil {
+		return respWedocCreateDoc{}, err
+	}
+
+	return resp, nil
+}
+
+// execWedocBatchUpdate 新建文档
+func (c *WorkwxApp) execWedocBatchUpdate(req reqWedocBatchUpdate) (respWedocBatchUpdate, error) {
+	var resp respWedocBatchUpdate
+	err := executeQyapiJSONPost(c, "/cgi-bin/wedoc/spreadsheet/batch_update", req, &resp, true)
+	if err != nil {
+		return respWedocBatchUpdate{}, err
+	}
+
+	return resp, nil
+}
+
+// execWedocGetSheetRangeData 新建文档
+func (c *WorkwxApp) execWedocGetSheetRangeData(req reqWedocGetSheetRangeData) (respWedocGetSheetRangeData, error) {
+	var resp respWedocGetSheetRangeData
+	err := executeQyapiJSONPost(c, "/cgi-bin/wedoc/spreadsheet/get_sheet_range_data", req, &resp, true)
+	if err != nil {
+		return respWedocGetSheetRangeData{}, err
+	}
+
+	return resp, nil
+}
+
+// execWedocGetSheetProperties 新建文档
+func (c *WorkwxApp) execWedocGetSheetProperties(req reqWedocGetSheetProperties) (respWedocGetSheetProperties, error) {
+	var resp respWedocGetSheetProperties
+	err := executeQyapiJSONPost(c, "/cgi-bin/wedoc/spreadsheet/get_sheet_properties", req, &resp, true)
+	if err != nil {
+		return respWedocGetSheetProperties{}, err
+	}
+
+	return resp, nil
+}
