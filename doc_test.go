@@ -25,15 +25,15 @@ func TestCreateDoc(t *testing.T) {
 	app := getTestApp() // Helper function to get a test WorkwxApp instance
 
 	t.Run("\"successful document creation", func(t *testing.T) {
-		req := reqWedocCreateDoc{
+		req := CreateDocumentRequest{
 			SpaceID:    "s.wx5ce26a78df2d2c7d.7521262158JX",
 			FatherID:   "s.wx5ce26a78df2d2c7d.7521262158JX_d.7521266546zmV",
-			DocType:    DocTypeSpreadsheet, // Invalid type
-			DocName:    "testDoc" + time.Now().Format("20060102150405"),
+			Type:       DocTypeSpreadsheet, // Invalid type
+			Name:       "testDoc" + time.Now().Format("20060102150405"),
 			AdminUsers: []string{"ZhouEnXian"},
 		}
 
-		resp, err := app.CreateDoc(req)
+		resp, err := app.CreateDocument(req)
 		fmt.Println(err)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp)
@@ -105,13 +105,11 @@ func TestStructToSpreadsheet(t *testing.T) {
 
 func TestBatchUpdateSpreadsheet(t *testing.T) {
 	app := getTestApp()
-	//docID := createTestDocument(t, app) // Helper to create a test doc
-	docID := "dcL65IIxT37rkUcbB3YHXOejEmICsqsZv8Fv5r2uRfmKkNJq5Vkq-oazTxNuucVYUIzCnqNcJZVUgsSzh4wulKTg" // Helper to create a test doc
+	docID := createTestDocument(t, app) // Helper to create a test doc
+	//docID := "dcL65IIxT37rkUcbB3YHXOejEmICsqsZv8Fv5r2uRfmKkNJq5Vkq-oazTxNuucVYUIzCnqNcJZVUgsSzh4wulKTg" // Helper to create a test doc
 
 	t.Run("add sheet and update cells", func(t *testing.T) {
-		porperties, err := app.GetSheetProperties(reqWedocGetSheetProperties{
-			DocID: docID,
-		})
+		porperties, err := app.GetSheet(docID)
 		assert.NoError(t, err)
 		sheetId := porperties.Properties[0].SheetID
 
@@ -124,24 +122,12 @@ func TestBatchUpdateSpreadsheet(t *testing.T) {
 		}
 
 		products := []Product{
-			{"P1", "Laptop", 999.99, 50},
+			{"P1", "Laptop", 999.99, 15},
 			{"P2", "Phone", 699.99, 100},
 			{"P3", "Tablet", 399.99, 75},
 		}
 
-		updateReq, err := StructToSpreadsheet(products, sheetId, true)
-		assert.NoError(t, err)
-
-		updateCellsReq := UpdateRequest{
-			UpdateRangeRequest: updateReq,
-		}
-
-		batchReq := reqWedocBatchUpdate{
-			DocID:    docID,
-			Requests: []UpdateRequest{updateCellsReq},
-		}
-
-		updateResult, err := app.BatchUpdateSpreadsheet(batchReq)
+		updateResult, err := app.AddData(docID, sheetId, products, true)
 		assert.NoError(t, err)
 		assert.NotNil(t, updateResult)
 		assert.NotNil(t, updateResult.Responses[0].UpdateRangeResponse)
@@ -162,7 +148,7 @@ func TestBatchUpdateSpreadsheet(t *testing.T) {
 			},
 		}
 
-		_, err := app.BatchUpdateSpreadsheet(batchReq)
+		_, err := app.batchUpdateSpreadsheet(batchReq)
 		assert.Error(t, err)
 	})
 }
@@ -196,14 +182,21 @@ func TestGetSheetRangeData(t *testing.T) {
 	})
 }
 func createTestDocument(t *testing.T, app *WorkwxApp) string {
-	req := reqWedocCreateDoc{
+	//req := reqWedocCreateDoc{
+	//	FatherID:   "s.wx5ce26a78df2d2c7d.7521262158JX_d.7521266546zmV",
+	//	DocType:    uint32(DocTypeSpreadsheet), // Invalid type
+	//	DocName:    "testDoc" + time.Now().Format("20060102150405"),
+	//	AdminUsers: []string{"ZhouEnXian"},
+	//}
+	req2 := CreateDocumentRequest{
+		SpaceID:    "s.wx5ce26a78df2d2c7d.7521262158JX",
 		FatherID:   "s.wx5ce26a78df2d2c7d.7521262158JX_d.7521266546zmV",
-		DocType:    DocTypeSpreadsheet, // Invalid type
-		DocName:    "testDoc" + time.Now().Format("20060102150405"),
+		Type:       DocTypeSpreadsheet, // Invalid type
+		Name:       "testDoc" + time.Now().Format("20060102150405"),
 		AdminUsers: []string{"ZhouEnXian"},
 	}
 
-	resp, err := app.CreateDoc(req)
+	resp, err := app.CreateDocument(req2)
 	if err != nil {
 		t.Fatalf("Failed to create test document: %v", err)
 	}
@@ -225,7 +218,7 @@ func addTestSheet(t *testing.T, app *WorkwxApp, docID string) string {
 		},
 	}
 
-	resp, err := app.BatchUpdateSpreadsheet(addSheetReq)
+	resp, err := app.batchUpdateSpreadsheet(addSheetReq)
 	if err != nil {
 		t.Fatalf("Failed to add test sheet: %v", err)
 	}

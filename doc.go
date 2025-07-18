@@ -2,15 +2,19 @@ package workwx
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 )
 
+// DocType 文档类型
+type DocType uint32
+
 // Document types
 const (
-	DocTypeDocument    uint32 = 3
-	DocTypeSpreadsheet uint32 = 4
-	DocTypeSmartSheet  uint32 = 10
+	DocTypeDocument    DocType = 3
+	DocTypeSpreadsheet DocType = 4
+	DocTypeSmartSheet  DocType = 10
 )
 
 // Dimension types
@@ -292,8 +296,8 @@ type SheetData struct {
 	Result GridData `json:"result"`
 }
 
-// CreateDoc creates a new document in WeChat Work
-func (c *WorkwxApp) CreateDoc(req reqWedocCreateDoc) (*WedocCreateDocResult, error) {
+// createDoc creates a new document in WeChat Work
+func (c *WorkwxApp) createDoc(req reqWedocCreateDoc) (*WedocCreateDocResult, error) {
 	resp, err := c.execWedocCreateDoc(req)
 	if err != nil {
 		return nil, err
@@ -305,8 +309,8 @@ func (c *WorkwxApp) CreateDoc(req reqWedocCreateDoc) (*WedocCreateDocResult, err
 	return &obj, nil
 }
 
-// BatchUpdateSpreadsheet performs batch updates on a spreadsheet
-func (c *WorkwxApp) BatchUpdateSpreadsheet(req reqWedocBatchUpdate) (*WedocBatchUpdateResult, error) {
+// batchUpdateSpreadsheet performs batch updates on a spreadsheet
+func (c *WorkwxApp) batchUpdateSpreadsheet(req reqWedocBatchUpdate) (*WedocBatchUpdateResult, error) {
 	resp, err := c.execWedocBatchUpdate(req)
 	if err != nil {
 		return nil, err
@@ -331,8 +335,8 @@ func (c *WorkwxApp) GetSheetRangeData(req reqWedocGetSheetRangeData) (*WedocGetS
 	return &obj, nil
 }
 
-// GetSheetProperties retrieves data from properties in a sheet
-func (c *WorkwxApp) GetSheetProperties(req reqWedocGetSheetProperties) (*WedocGetSheetPropertiesResult, error) {
+// getSheetProperties retrieves data from properties in a sheet
+func (c *WorkwxApp) getSheetProperties(req reqWedocGetSheetProperties) (*WedocGetSheetPropertiesResult, error) {
 	resp, err := c.execWedocGetSheetProperties(req)
 	if err != nil {
 		return nil, err
@@ -342,6 +346,81 @@ func (c *WorkwxApp) GetSheetProperties(req reqWedocGetSheetProperties) (*WedocGe
 		return nil, err
 	}
 	return &obj, nil
+}
+
+// CreateDocumentRequest 创建文档请求
+type CreateDocumentRequest struct {
+	SpaceID    string   // 空间ID
+	FatherID   string   // 父目录ID
+	Name       string   // 文档名称
+	Type       DocType  // 文档类型
+	AdminUsers []string // 管理员用户列表
+}
+
+// CreateDocument 创建新文档
+func (c *WorkwxApp) CreateDocument(req CreateDocumentRequest) (*WedocCreateDocResult, error) {
+	// 转换请求格式
+	apiReq := reqWedocCreateDoc{
+		SpaceID:    req.SpaceID,
+		FatherID:   req.FatherID,
+		DocType:    uint32(req.Type),
+		DocName:    req.Name,
+		AdminUsers: req.AdminUsers,
+	}
+
+	// 调用API
+	resp, err := c.createDoc(apiReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create document: %w", err)
+	}
+
+	return resp, nil
+}
+
+// GetDefaultSheet 获取文档的默认Sheet1
+func (c *WorkwxApp) GetSheet(docId string) (*WedocGetSheetPropertiesResult, error) {
+	// 获取文档的所有sheet
+	req := reqWedocGetSheetProperties{
+		DocID: docId,
+	}
+
+	resp, err := c.getSheetProperties(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sheet properties: %w", err)
+	}
+
+	if len(resp.Properties) == 0 {
+		return nil, errors.New("no sheets found in document")
+	}
+
+	return resp, nil
+}
+
+// AddData 向sheet中添加数据
+func (c *WorkwxApp) AddData(docId, sheetId string, data interface{}, includeHeaders bool) (*WedocBatchUpdateResult, error) {
+	// 将数据转换为更新请求
+	updateReq, err := StructToSpreadsheet(data, sheetId, includeHeaders)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert data to spreadsheet format: %w", err)
+	}
+
+	// 准备批量更新请求
+	batchReq := reqWedocBatchUpdate{
+		DocID: docId,
+		Requests: []UpdateRequest{
+			{
+				UpdateRangeRequest: updateReq,
+			},
+		},
+	}
+
+	// 执行更新
+	resp, err := c.batchUpdateSpreadsheet(batchReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update spreadsheet: %w", err)
+	}
+
+	return resp, nil
 }
 
 // StructToSpreadsheet converts a struct slice to spreadsheet data
